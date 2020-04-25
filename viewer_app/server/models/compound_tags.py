@@ -31,7 +31,7 @@ def split_to_compound_tags(tags: List[TaggedEntity]) -> List[TaggedEntity]:
                     result.append(TaggedEntity(l_tags + o_l_tags, o_start, o_end, text[o_start - start:o_end - start]))
                     processed = o_end
                 if end != o_end:
-                    result.append(TaggedEntity(o_l_tags, o_end, end, text[o_end - start:]))
+                    result.append(TaggedEntity(l_tags, o_end, end, text[o_end - start:]))
             elif end > o_start:
                 # [ ( ] )
                 got_conflict = True
