@@ -1,0 +1,19 @@
+genrule(
+    name = 'bundle.js_',
+    srcs = ['//viewer_app/web:bundle.js'],
+    outs = ['static/scripts/bundle.js'],
+    cmd = "cp $< $@",
+)
+
+py_binary(
+    name = "run_server",
+    main = "server.py",
+    srcs = ['server.py'],
+    deps = [
+        "//viewer_app/server/db"
+    ],
+    data = [
+        "index.html",
+        "static/scripts/bundle.js",
+    ]
+)

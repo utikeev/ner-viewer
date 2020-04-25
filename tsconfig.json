@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "jsx": "react",
+        "strict": true,
+        "lib": [
+            "es6",
+            "dom",
+            "es2015.promise"
+        ],
+        "esModuleInterop": true,
+        "sourceMap": true
+    }
+}

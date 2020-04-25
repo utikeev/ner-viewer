@@ -1,0 +1,23 @@
+$common-sat: 60%;
+$common-lig: 80%;
+$common-alpha: 0.5%;
+
+$gene-color: hsla(285, $common-lig, $common-sat, $common-alpha);
+$chemical-color: hsla(109, $common-lig, $common-sat, $common-alpha);
+$disease-color: hsla(50, $common-lig, $common-sat, $common-alpha);
+
+.entity-gene {
+    background-color: $gene-color;
+}
+
+.entity-chemical {
+    background-color: $chemical-color;
+}
+
+.entity-disease {
+    background-color: $disease-color;
+}
+
+.entity-gene.entity-chemical {
+    background: linear-gradient(90deg, $gene-color 0 30%, $chemical-color 70% 100%);
+}
