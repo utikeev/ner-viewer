@@ -1,7 +1,5 @@
 $common-bg-sat: 60%;
-$common-text-sat: 80%;
 $common-bg-lig: 60%;
-$common-text-lig: 15%;
 $common-bg-alpha: 0.5%;
 
 $gene-hue: 285;
@@ -12,56 +10,57 @@ $disease-hue: 50;
     @return hsla($base, $common-bg-sat, $common-bg-lig, $common-bg-alpha);
 }
 
-@function entity_text_color($base) {
-    @return hsl($base, $common-text-sat, $common-text-lig);
+$gene-color: entity_bg_color($gene-hue);
+$chemical-color: entity_bg_color($chemical-hue);
+$disease-color: entity_bg_color($disease-hue);
+
+@function mixed_color($from, $to) {
+    @return linear-gradient(90deg, $from 0 30%, $to 70% 100%);
 }
 
-$gene-color: entity_bg_color($gene-hue);
-$gene-text-color: entity_text_color($gene-hue);
-$chemical-color: entity_bg_color($chemical-hue);
-$chemical-text-color: entity_text_color($chemical-hue);
-$disease-color: entity_bg_color($disease-hue);
-$disease-text-color: entity_text_color($disease-hue);
+span[class*="entity-"] {
+    -webkit-text-fill-color: rgba(0, 0, 0, 0.7);
 
-@function mixed_bg_color($from, $to) {
-    @return linear-gradient(90deg, $from 0 30%, $to 70% 100%);
+    // TODO: had to solve first the way to show partial conflicts, otherwise it leads to big gaps between conflicting parts
+    //border-radius: 0.5rem;
+    //padding-inline-start: 0.3rem;
+    //padding-inline-end: 0.3rem;
+    //padding-top: 0.1rem;
+    //padding-bottom: 0.1rem;
 }
 
 .entity-gene {
     background-color: $gene-color;
-    color: $gene-text-color;
 }
 
 .entity-chemical {
     background-color: $chemical-color;
-    color: $chemical-text-color;
 }
 
 .entity-disease {
     background-color: $disease-color;
-    color: $disease-text-color;
 }
 
 .entity-gene-chemical {
-    background: mixed_bg_color($gene-color, $chemical-color);
+    background: mixed_color($gene-color, $chemical-color);
 }
 
 .entity-chemical-gene {
-    background: mixed_bg_color($chemical-color, $gene-color)
+    background: mixed_color($chemical-color, $gene-color);
 }
 
 .entity-gene-disease {
-    background: mixed_bg_color($gene-color, $disease-color);
+    background: mixed_color($gene-color, $disease-color);
 }
 
 .entity-disease-gene {
-    background: mixed_bg_color($disease-color, $gene-color)
+    background: mixed_color($disease-color, $gene-color);
 }
 
 .entity-chemical-disease {
-    background: mixed_bg_color($chemical-color, $disease-color);
+    background: mixed_color($chemical-color, $disease-color);
 }
 
 .entity-disease-chemical {
-    background: mixed_bg_color($disease-color, $chemical-color)
+    background: mixed_color($disease-color, $chemical-color);
 }
