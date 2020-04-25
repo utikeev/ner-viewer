@@ -1,0 +1,27 @@
+.article {
+  display: grid;
+  grid-template-columns: 70% auto;
+  margin: 1rem;
+}
+
+.article-block {
+  display: grid;
+  grid-template-rows: max-content max-content auto;
+}
+
+.article-pmid {
+  justify-self: center;
+}
+
+.article-title {
+  justify-self: center;
+  text-align: center;
+}
+
+.article-legend {
+  display: grid;
+}
+
+.article-legend ul {
+  list-style: none;
+}

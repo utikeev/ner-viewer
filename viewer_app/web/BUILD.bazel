@@ -10,6 +10,8 @@ ts_library(
         '@npm//effector-react',
         '@npm//@types/react',
         '@npm//@types/react-dom',
+        "@npm//@fortawesome/react-fontawesome",
+        "@npm//@fortawesome/free-solid-svg-icons",
     ]
 )
 

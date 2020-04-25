@@ -11,9 +11,15 @@ export interface Tag {
     end: number
 }
 
+export interface Entity {
+    type: TagType,
+    text: string
+}
+
 export interface Article {
     pmid: number,
     title: string,
     abstract: string
-    tags: Tag[]
+    tags: Tag[],
+    entities: Entity[]
 }

@@ -1,23 +1,67 @@
-$common-sat: 60%;
-$common-lig: 80%;
-$common-alpha: 0.5%;
+$common-bg-sat: 60%;
+$common-text-sat: 80%;
+$common-bg-lig: 60%;
+$common-text-lig: 15%;
+$common-bg-alpha: 0.5%;
 
-$gene-color: hsla(285, $common-lig, $common-sat, $common-alpha);
-$chemical-color: hsla(109, $common-lig, $common-sat, $common-alpha);
-$disease-color: hsla(50, $common-lig, $common-sat, $common-alpha);
+$gene-hue: 285;
+$chemical-hue: 109;
+$disease-hue: 50;
+
+@function entity_bg_color($base) {
+    @return hsla($base, $common-bg-sat, $common-bg-lig, $common-bg-alpha);
+}
+
+@function entity_text_color($base) {
+    @return hsl($base, $common-text-sat, $common-text-lig);
+}
+
+$gene-color: entity_bg_color($gene-hue);
+$gene-text-color: entity_text_color($gene-hue);
+$chemical-color: entity_bg_color($chemical-hue);
+$chemical-text-color: entity_text_color($chemical-hue);
+$disease-color: entity_bg_color($disease-hue);
+$disease-text-color: entity_text_color($disease-hue);
+
+@function mixed_bg_color($from, $to) {
+    @return linear-gradient(90deg, $from 0 30%, $to 70% 100%);
+}
 
 .entity-gene {
     background-color: $gene-color;
+    color: $gene-text-color;
 }
 
 .entity-chemical {
     background-color: $chemical-color;
+    color: $chemical-text-color;
 }
 
 .entity-disease {
     background-color: $disease-color;
+    color: $disease-text-color;
 }
 
-.entity-gene.entity-chemical {
-    background: linear-gradient(90deg, $gene-color 0 30%, $chemical-color 70% 100%);
+.entity-gene-chemical {
+    background: mixed_bg_color($gene-color, $chemical-color);
+}
+
+.entity-chemical-gene {
+    background: mixed_bg_color($chemical-color, $gene-color)
+}
+
+.entity-gene-disease {
+    background: mixed_bg_color($gene-color, $disease-color);
+}
+
+.entity-disease-gene {
+    background: mixed_bg_color($disease-color, $gene-color)
+}
+
+.entity-chemical-disease {
+    background: mixed_bg_color($chemical-color, $disease-color);
+}
+
+.entity-disease-chemical {
+    background: mixed_bg_color($disease-color, $chemical-color)
 }

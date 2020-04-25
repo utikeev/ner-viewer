@@ -1,0 +1,24 @@
+.pmid-form {
+  display: grid;
+  justify-items: center;
+  margin-bottom: 2rem;
+  grid-template-areas: "label label" "input buttons";
+  grid-column-gap: 1rem;
+}
+
+.pmid-label {
+  font-size: 1.3rem;
+  grid-area: label;
+}
+
+.pmid-input {
+  font-size: 1.3rem;
+  text-align: center;
+  grid-area: input;
+  justify-self: end;
+}
+
+.pmid-buttons {
+  grid-area: buttons;
+  justify-self: start;
+}

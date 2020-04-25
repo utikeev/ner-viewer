@@ -1,6 +1,6 @@
 py_library(
-    name = "db",
+    name = "models",
     visibility = ['//visibility:public'],
     srcs = glob(["*.py"]),
-    deps = ['//viewer_app/server/models'],
+    deps = [],
 )

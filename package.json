@@ -6,7 +6,12 @@
     "react-dom": "~16.13.1",
     "bootstrap": "~4.4.1",
     "effector": "~20.14.0",
-    "effector-react": "~20.7.1"
+    "effector-react": "~20.7.1",
+
+    "@fortawesome/fontawesome-free": "~5.12.1",
+    "@fortawesome/react-fontawesome": "~0.1.8",
+    "@fortawesome/free-solid-svg-icons": "~5.12.1",
+    "@fortawesome/fontawesome-svg-core": "~1.2.27"
   },
   "devDependencies": {
     "@bazel/rollup": "~1.6.0",

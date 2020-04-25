@@ -1,19 +1,9 @@
 import logging
-from typing import List, NamedTuple
+from typing import List
+
+from viewer_app.server.models.tags import TaggedEntity
 
 LOG = logging.getLogger('ner.viewer.compound_tagger')
-
-
-class TaggedEntity(NamedTuple):
-    tags: List[str]
-    start: int
-    end: int
-    text: str
-
-    def __lt__(self, other):
-        if self.start == other.start:
-            return self.end < other.end
-        return self.start < other.start
 
 
 def split_to_compound_tags(tags: List[TaggedEntity]) -> List[TaggedEntity]:
@@ -31,8 +21,8 @@ def split_to_compound_tags(tags: List[TaggedEntity]) -> List[TaggedEntity]:
             o_end = tags[j].end
             o_l_tags = tags[j].tags
             o_text = tags[j].text
-            LOG.info(f'{start}, {end}, {o_start}, {o_end}')
             if end >= o_end:
+                # [ ( ) ]
                 got_conflict = True
                 if o_start > processed and start != o_start:
                     result.append(TaggedEntity(l_tags, start, o_start, text[:o_start - start]))
@@ -43,6 +33,7 @@ def split_to_compound_tags(tags: List[TaggedEntity]) -> List[TaggedEntity]:
                 if end != o_end:
                     result.append(TaggedEntity(o_l_tags, o_end, end, text[o_end - start:]))
             elif end > o_start:
+                # [ ( ] )
                 got_conflict = True
                 if o_start > processed and start != o_start:
                     result.append(TaggedEntity(l_tags, start, o_start, text[:o_start - start]))
@@ -55,6 +46,6 @@ def split_to_compound_tags(tags: List[TaggedEntity]) -> List[TaggedEntity]:
                     processed = o_end
             else:
                 break
-        if not got_conflict and start > processed:
+        if not got_conflict and start >= processed:
             result.append(tags[i])
     return result

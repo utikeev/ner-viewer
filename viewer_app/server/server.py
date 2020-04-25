@@ -7,7 +7,7 @@ import tornado.ioloop
 import tornado.web
 from tornado import httputil
 
-from viewer_app.server.db.article_database import ArticleDatabase
+from viewer_app.server.db.article_database import ArticleDatabase, Article
 
 LOG = logging.getLogger('ner.viewer.main')
 
@@ -31,10 +31,10 @@ class ArticleHandler(tornado.web.RequestHandler):
         raise NotImplementedError()
 
     @staticmethod
-    def get_by_pmid(db: ArticleDatabase, pmid: int) -> Any:
-        article = db[pmid]
+    def article_to_json(article: Article) -> Any:
         content_parts = article.content.split('|')
         tags = article.compound_tags
+        entities = article.entities
         return {
             'pmid': article.id,
             'title': content_parts[0],
@@ -46,12 +46,29 @@ class ArticleHandler(tornado.web.RequestHandler):
                     'start': tag.start,
                     'end': tag.end
                 } for tag in tags
+            ],
+            'entities': [
+                {
+                    'type': entity.tag,
+                    'text': entity.text
+                } for entity in entities
             ]
         }
 
+    @staticmethod
+    def get_by_pmid(db: ArticleDatabase, pmid: int) -> Any:
+        return ArticleHandler.article_to_json(db[pmid])
+
+    @staticmethod
+    def get_random(db: ArticleDatabase) -> Any:
+        return ArticleHandler.article_to_json(db.get_random())
+
     def get(self):
-        pmid = self.get_argument('pmid')
-        self.write(self.get_by_pmid(self.db, int(pmid)))
+        pmid = self.get_argument('pmid', None)
+        if pmid is None:
+            self.write(self.get_random(self.db))
+        else:
+            self.write(self.get_by_pmid(self.db, int(pmid)))
 
 
 if __name__ == '__main__':
