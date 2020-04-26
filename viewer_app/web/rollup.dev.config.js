@@ -18,6 +18,8 @@ export default {
             namedExports: {
                 'react': Object.keys(React),
                 'react-dom': Object.keys(ReactDOM),
+                'react-router-dom': ['BrowserRouter', 'Switch', 'Route'],
+                'react-is': ['isValidElementType']
             }
         }),
         replace({

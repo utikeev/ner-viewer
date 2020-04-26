@@ -10,6 +10,8 @@ ts_library(
         '@npm//effector-react',
         '@npm//@types/react',
         '@npm//@types/react-dom',
+        '@npm//@types/react-router-dom',
+        '@npm//@types/history',
         "@npm//@fortawesome/react-fontawesome",
         "@npm//@fortawesome/free-solid-svg-icons",
     ]
@@ -49,6 +51,7 @@ rollup_bundle(
         ':lib',
         '@npm//react',
         '@npm//react-dom',
+        '@npm//react-router-dom',
         '@npm//bootstrap',
         '@npm//node-sass',
     ] + _rollup_plugins,

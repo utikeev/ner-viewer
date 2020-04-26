@@ -17,7 +17,7 @@ export interface Entity {
 }
 
 export interface Article {
-    pmid: number,
+    pmid: string,
     title: string,
     abstract: string
     tags: Tag[],

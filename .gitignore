@@ -2,3 +2,11 @@
 
 /.idea
 /.ijwb
+bazel-bin
+bazel-out
+bazel-testlogs
+bazel-ner-viewer
+node_modules
+
+# We have yarn.lock commited instead
+package-lock.json

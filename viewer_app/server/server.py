@@ -95,8 +95,8 @@ if __name__ == '__main__':
     LOG.info('Starting web-server...')
 
     app = tornado.web.Application([
-        (r'/', MainHandler),
-        ('/article', ArticleHandler, dict(db=database))
+        ('/article', ArticleHandler, dict(db=database)),
+        (r'/.*', MainHandler),
     ], static_path=static_path)
     app.listen(9090)
 

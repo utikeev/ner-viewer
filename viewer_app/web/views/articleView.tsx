@@ -1,4 +1,4 @@
-import {Article, Entity, Tag, TagType} from "../models/Article";
+import {Article, Entity, Tag} from "../models/Article";
 import * as React from "react";
 import "../styles/article.scss";
 import "../styles/entities.scss";
@@ -8,8 +8,8 @@ export interface ArticleProps {
 }
 
 interface TaggedViewProps {
-    text: string,
-    tags: Tag[],
+    text: string
+    tags: Tag[]
 }
 
 function replaceMissingSymbols(text: string): string {
@@ -25,7 +25,6 @@ const TaggedView: React.FC<TaggedViewProps> = (props: TaggedViewProps) => {
         const types = tag.types.map(type => type.toLowerCase());
         const unformatted = replaceMissingSymbols(props.text.substring(processed, tag.start));
         const formatted = replaceMissingSymbols(tag.text);
-        console.log({tag, unformatted, formatted});
         if (unformatted != '') {
             elements.push(<React.Fragment key={processed}>{unformatted}</React.Fragment>);
         }
