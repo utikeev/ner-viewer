@@ -32,6 +32,8 @@ class ArticleHandler(tornado.web.RequestHandler):
 
     @staticmethod
     def article_to_json(article: Article) -> Any:
+        if article is None:
+            return None
         content_parts = article.content.split('|')
         tags = article.compound_tags
         entities = article.entities
@@ -59,6 +61,7 @@ class ArticleHandler(tornado.web.RequestHandler):
     def get_by_pmid(db: ArticleDatabase, pmid: int) -> Any:
         return ArticleHandler.article_to_json(db[pmid])
 
+
     @staticmethod
     def get_random(db: ArticleDatabase) -> Any:
         return ArticleHandler.article_to_json(db.get_random())
@@ -68,7 +71,14 @@ class ArticleHandler(tornado.web.RequestHandler):
         if pmid is None:
             self.write(self.get_random(self.db))
         else:
-            self.write(self.get_by_pmid(self.db, int(pmid)))
+            json = self.get_by_pmid(self.db, int(pmid))
+            if json is None:
+                self.set_status(404)
+                self.write({
+                    'reason': 'Article not found'
+                })
+            else:
+                self.write(json)
 
 
 if __name__ == '__main__':

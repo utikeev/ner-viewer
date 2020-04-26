@@ -28,6 +28,19 @@ copy_to_bin(
     srcs = glob(['**/*.css', '**/*.scss'])
 )
 
+config_setting(
+    name = "dev",
+    define_values = {
+        'env': 'dev'
+    }
+)
+config_setting(
+    name = "prod",
+    define_values = {
+        'env': 'prod'
+    }
+)
+
 rollup_bundle(
     name = 'bundle',
     visibility = ['//visibility:public'],
@@ -40,6 +53,11 @@ rollup_bundle(
         '@npm//node-sass',
     ] + _rollup_plugins,
     format = 'umd',
-    config_file = ':rollup.config.js',
+    config_file = select({
+        ':dev': 'rollup.dev.config.js',
+        ':prod': 'rollup.config.js',
+        '//conditions:default': 'rollup.config.js',
+    }),
     entry_point = 'main.tsx',
+    sourcemap = "inline",
 )

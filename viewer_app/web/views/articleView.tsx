@@ -25,11 +25,17 @@ const TaggedView: React.FC<TaggedViewProps> = (props: TaggedViewProps) => {
         const types = tag.types.map(type => type.toLowerCase());
         const unformatted = replaceMissingSymbols(props.text.substring(processed, tag.start));
         const formatted = replaceMissingSymbols(tag.text);
-        elements.push(<>{unformatted}</>);
-        elements.push(<span className={`entity-${types.join("-")}`}>{formatted}</span>);
+        console.log({tag, unformatted, formatted});
+        if (unformatted != '') {
+            elements.push(<React.Fragment key={processed}>{unformatted}</React.Fragment>);
+        }
+        elements.push(<span key={tag.start} className={`entity-${types.join("-")}`}>{formatted}</span>);
         processed = tag.end;
     }
-    elements.push(<>{replaceMissingSymbols(props.text.substring(processed))}</>);
+    const remainder = replaceMissingSymbols(props.text.substring(processed));
+    if (remainder != '') {
+        elements.push(<React.Fragment key={processed}>{remainder}</React.Fragment>);
+    }
     return <>{elements}</>;
 };
 
@@ -53,7 +59,7 @@ const LegendView: React.FC<LegendViewProps> = (props: LegendViewProps) => {
 
 export const ArticleView: React.FC<ArticleProps> = (props: ArticleProps) => {
     const titleLength = props.article.title.length;
-    const titleTags = props.article.tags.filter(tag => tag.end < titleLength);
+    const titleTags = props.article.tags.filter(tag => tag.end <= titleLength);
     const abstractTags: Tag[] = props.article.tags
         .filter(tag => tag.start > titleLength)
         .map(tag => {
@@ -66,7 +72,18 @@ export const ArticleView: React.FC<ArticleProps> = (props: ArticleProps) => {
                 <TaggedView text={props.article.title} tags={titleTags}/>
             </h3>
             <h5 className="article-pmid">
-                <a href={`https://pubmed.ncbi.nlm.nih.gov/${props.article.pmid}`}>PMID{props.article.pmid}</a>
+                <a href={`https://pubmed.ncbi.nlm.nih.gov/${props.article.pmid}`}
+                   rel="noopener noreferrer"
+                   target="_blank">
+                    PMID{props.article.pmid}
+                </a>
+                {' '}
+                <a href={`https://www.ncbi.nlm.nih.gov/research/pubtator/?view=publication&pmid=${props.article.pmid}&query=`}
+                   rel="noopener noreferrer"
+                   target="_blank"
+                   className='small'>
+                    [Pubtator]
+                </a>
             </h5>
             <div className="article-abstract">
                 <TaggedView text={props.article.abstract} tags={abstractTags}/>
