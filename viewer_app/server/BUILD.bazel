@@ -15,5 +15,9 @@ py_binary(
     data = [
         "index.html",
         "static/scripts/bundle.js",
+        '//data:tagged_ctd.db',
+    ],
+    args = [
+        '--database', '$(location //data:tagged_ctd.db)',
     ]
 )

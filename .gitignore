@@ -10,3 +10,7 @@ node_modules
 
 # We have yarn.lock commited instead
 package-lock.json
+
+data/tagged_ctd.db
+logs/*
+!logs/.gitkeep

@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 from pathlib import Path
 from typing import Optional, Awaitable, Any
 
@@ -83,7 +84,7 @@ class ArticleHandler(tornado.web.RequestHandler):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--log_directory', type=lambda x: Path(x), required=True)
+    parser.add_argument('--log_directory', type=lambda x: Path(x), default=Path(os.environ['BUILD_WORKSPACE_DIRECTORY']) / 'logs')
     parser.add_argument('--database', type=lambda x: Path(x), required=True)
     args = parser.parse_args()
 

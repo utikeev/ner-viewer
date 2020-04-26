@@ -1,5 +1,6 @@
 import {createDomain} from "effector";
 import {Article} from "../models/Article";
+import {ArticleApi} from "../api/api";
 
 interface FetchArticleRequest {
     pmid: string | null
@@ -35,19 +36,5 @@ export const $articleStore = ArticleDomain.createStore<ArticleState>({
         ...state,
         error: error.message
     }));
-
-export class ArticleApi {
-    public static fetchArticle = async (request: FetchArticleRequest) => {
-        // TODO: pass host as an ENV variable
-        const baseUrl = 'http://localhost:9090/article';
-        const url = request.pmid ? `${baseUrl}?pmid=${request.pmid}` : baseUrl;
-        const response: Response = await fetch(url);
-        const json = await response.json();
-        if (!response.ok) {
-            return Promise.reject(new Error(json.reason));
-        }
-        return json;
-    }
-}
 
 fetchArticleFx.use(ArticleApi.fetchArticle);

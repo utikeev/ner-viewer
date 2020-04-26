@@ -12,6 +12,7 @@ ts_library(
         '@npm//@types/react-dom',
         '@npm//@types/react-router-dom',
         '@npm//@types/history',
+        '@npm//@types/node',
         "@npm//@fortawesome/react-fontawesome",
         "@npm//@fortawesome/free-solid-svg-icons",
     ]
@@ -62,5 +63,4 @@ rollup_bundle(
         '//conditions:default': 'rollup.config.js',
     }),
     entry_point = 'main.tsx',
-    sourcemap = "inline",
 )

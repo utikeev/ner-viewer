@@ -29,4 +29,9 @@ export default {
             extensions: ['.css', '.scss'],
         }),
     ],
+    onwarn: (warning, warn) => {
+        // And again some weird warning about undefined this because of the transpilers
+        if ( warning.code === 'THIS_IS_UNDEFINED' ) return;
+        warn(warning);
+    }
 };

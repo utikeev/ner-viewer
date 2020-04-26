@@ -19,7 +19,8 @@ export default {
             namedExports: {
                 'react': Object.keys(React),
                 'react-dom': Object.keys(ReactDOM),
-                'react-router-dom': ['BrowserRouter', 'Switch', 'Route', 'isValidElementType'],
+                'react-router-dom': ['BrowserRouter', 'Switch', 'Route'],
+                'react-is': ['isValidElementType']
             }
         }),
         replace({
@@ -32,4 +33,12 @@ export default {
             sourcemap: false
         }),
     ],
+    onwarn: (warning, warn) => {
+        // For some weird reason Bazel doesn't allow to use select() with sourcemap attribute of the rule
+        // So we'll supress that warning
+        if (/sourcemap/.test(warning)) return;
+        // And again some weird warning about undefined this because of the transpilers
+        if ( warning.code === 'THIS_IS_UNDEFINED' ) return;
+        warn(warning);
+    }
 };
