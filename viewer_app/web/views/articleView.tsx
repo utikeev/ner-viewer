@@ -46,13 +46,21 @@ interface LegendItemViewProps {
     item: Entity
 }
 
+const compare = (a: Entity, b: Entity) => {
+    const typesCompare = a.type.localeCompare(b.type);
+    if (typesCompare == 0) {
+        return a.text.localeCompare(b.text)
+    }
+    return typesCompare;
+};
+
 const LegendItem: React.FC<LegendItemViewProps> = (props: LegendItemViewProps) => {
     return <span className={`entity-${props.item.type.toLowerCase()}`}>{replaceMissingSymbols(props.item.text)}</span>
 };
 
 const LegendView: React.FC<LegendViewProps> = (props: LegendViewProps) => {
     return <ul>
-        {props.items.map((item, i) => <li key={i}><LegendItem item={item}/></li>)}
+        {props.items.sort(compare).map((item, i) => <li key={i}><LegendItem item={item}/></li>)}
     </ul>
 };
 
