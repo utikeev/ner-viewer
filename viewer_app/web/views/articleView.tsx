@@ -1,10 +1,10 @@
 import {Article, KnownEntityGroup, Tag, TagType, TextEntities, UnknownEntity} from "../models/Article";
 import * as React from "react";
-import {Ref, useEffect, useState} from "react";
+import {Ref, SetStateAction, useEffect, useState} from "react";
 import "../styles/article.scss";
 import "../styles/entities.scss";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faCaretRight, faDna, faVials, faVirus} from "@fortawesome/free-solid-svg-icons";
+import {faCaretRight, faDna, faSearch, faTimesCircle, faVials, faVirus} from "@fortawesome/free-solid-svg-icons";
 
 export interface ArticleProps {
     article: Article
@@ -16,8 +16,9 @@ interface TaggedViewProps {
     tags: Tag[]
     showUnknown: boolean
     currentPopupKey?: string
-    setCurrentPopup: (popupKey: string | undefined) => void
+    setCurrentPopup: React.Dispatch<string | undefined>
     popupKeyRef: Ref<HTMLDivElement>
+    highlightedEntityId?: string
 }
 
 function replaceMissingSymbols(text: string): string {
@@ -66,6 +67,7 @@ const TaggedView: React.FC<TaggedViewProps> = (props: TaggedViewProps) => {
         const idMap = tag.ids;
         if (Object.values(idMap).filter(item => item != null).length == 0 && !props.showUnknown) continue;
         const selected = props.currentPopupKey == `${props.name}-${tag.start}`;
+        const highlighted = props.highlightedEntityId != undefined && Object.values(idMap).includes(props.highlightedEntityId);
         const types = tag.types.filter(type => props.showUnknown || idMap[type] != null).map(type => type.toLowerCase());
         const unformatted = replaceMissingSymbols(props.text.substring(processed, tag.start));
         const formatted = replaceMissingSymbols(tag.text);
@@ -74,7 +76,7 @@ const TaggedView: React.FC<TaggedViewProps> = (props: TaggedViewProps) => {
         }
         elements.push(
             <span key={`${props.name}-${tag.start}`}
-                  className={`entity-${types.join("-")} article-entity`}
+                  className={`entity-${types.join("-")} article-entity ${highlighted ? "article-entity-highlighted" : ""}`}
                   onClick={() => props.setCurrentPopup(`${props.name}-${tag.start}`)}>
                 {formatted}
                 {selected ? <TagWithPopup key={`${props.name}-popup`} ref={props.popupKeyRef} tag={tag}/> : <></>}
@@ -92,10 +94,14 @@ const TaggedView: React.FC<TaggedViewProps> = (props: TaggedViewProps) => {
 interface LegendViewProps {
     items: TextEntities
     showUnknown: boolean
+    highlightedEntityId?: string
+    setHighlightedEntityId: React.Dispatch<string | undefined>
 }
 
 interface KnownLegendItemViewProps {
     item: KnownEntityGroup
+    highlightedEntityId?: string
+    setHighlightedEntityId: React.Dispatch<string | undefined>
 }
 
 interface UnknownLegendItemViewProps {
@@ -114,7 +120,8 @@ const KnownLegendItem: React.FC<KnownLegendItemViewProps> = (props: KnownLegendI
     const prefix = props.item.type == TagType.GENE ? 'GENE:' : 'MeSH:';
     const link = props.item.type == TagType.GENE ? `https://www.ncbi.nlm.nih.gov/gene/${props.item.id}` :
         `https://meshb.nlm.nih.gov/record/ui?ui=${props.item.id}`;
-
+    const highlighted = props.highlightedEntityId == props.item.id;
+    const iconClass = highlighted ? "article-legend-item-icon-close" : "article-legend-item-icon-search";
     return <div>
         <span className={`entity-${props.item.type.toLowerCase()}`}>
             <a href={link}
@@ -124,6 +131,15 @@ const KnownLegendItem: React.FC<KnownLegendItemViewProps> = (props: KnownLegendI
                 {prefix + props.item.id}
             </a>
         </span>
+        <FontAwesomeIcon className={`article-legend-item-icon ${iconClass}`}
+                         icon={highlighted ? faTimesCircle : faSearch}
+                         onClick={() => {
+                             if (highlighted) {
+                                 props.setHighlightedEntityId(undefined);
+                             } else {
+                                 props.setHighlightedEntityId(props.item.id);
+                             }
+                         }}/>
         <ul>
             {props.item.aliases.map((item, i) => <li key={i}>{item}</li>)}
         </ul>
@@ -140,6 +156,8 @@ interface LegendGroupProps {
     type: TagType,
     knownItems: KnownEntityGroup[]
     unknownItems: UnknownEntity[]
+    highlightedEntityId?: string
+    setHighlightedEntityId: React.Dispatch<string | undefined>
 }
 
 const LegendGroup: React.FC<LegendGroupProps> = (props: LegendGroupProps) => {
@@ -157,7 +175,12 @@ const LegendGroup: React.FC<LegendGroupProps> = (props: LegendGroupProps) => {
         </h5>
         {
             expanded ? <ul>
-                {props.knownItems.sort(compare).map((item, i) => <li key={i}><KnownLegendItem item={item}/></li>)}
+                {props.knownItems.sort(compare).map((item, i) => <li key={i}>
+                    <KnownLegendItem
+                        item={item}
+                        highlightedEntityId={props.highlightedEntityId}
+                        setHighlightedEntityId={props.setHighlightedEntityId}/>
+                </li>)}
                 {props.unknownItems.length > 0 ? <h6>Unknown items</h6> : <></>}
                 {props.unknownItems.sort(compareUnknown).map((item, i) => <li key={i}><UnknownLegendItem item={item}/>
                 </li>)}
@@ -166,20 +189,27 @@ const LegendGroup: React.FC<LegendGroupProps> = (props: LegendGroupProps) => {
     </div>
 };
 
-const LegendView: React.FC<LegendViewProps> = ({items: {known, unknown}, showUnknown}: LegendViewProps) => {
-
+const LegendView: React.FC<LegendViewProps> = (props: LegendViewProps) => {
+    const known = props.items.known;
+    const unknown = props.items.unknown;
     return <div className="article-legend-list">
         <LegendGroup name="Genes" icon={faDna} type={TagType.GENE}
                      knownItems={known.filter((item) => item.type == TagType.GENE)}
-                     unknownItems={showUnknown ? unknown.filter((item) => item.type == TagType.GENE) : []}
+                     unknownItems={props.showUnknown ? unknown.filter((item) => item.type == TagType.GENE) : []}
+                     highlightedEntityId={props.highlightedEntityId}
+                     setHighlightedEntityId={props.setHighlightedEntityId}
         />
         <LegendGroup name="Diseases" icon={faVirus} type={TagType.DISEASE}
                      knownItems={known.filter((item) => item.type == TagType.DISEASE)}
-                     unknownItems={showUnknown ? unknown.filter((item) => item.type == TagType.DISEASE) : []}
+                     unknownItems={props.showUnknown ? unknown.filter((item) => item.type == TagType.DISEASE) : []}
+                     highlightedEntityId={props.highlightedEntityId}
+                     setHighlightedEntityId={props.setHighlightedEntityId}
         />
         <LegendGroup name="Chemicals" icon={faVials} type={TagType.CHEMICAL}
                      knownItems={known.filter((item) => item.type == TagType.CHEMICAL)}
-                     unknownItems={showUnknown ? unknown.filter((item) => item.type == TagType.CHEMICAL) : []}
+                     unknownItems={props.showUnknown ? unknown.filter((item) => item.type == TagType.CHEMICAL) : []}
+                     highlightedEntityId={props.highlightedEntityId}
+                     setHighlightedEntityId={props.setHighlightedEntityId}
         />
     </div>
 };
@@ -211,6 +241,8 @@ export const ArticleView: React.FC<ArticleProps> = (props: ArticleProps) => {
         };
     }, [popupKeyRef]);
 
+    const [highlightedEntityId, setHighlightedEntityId] = useState<string | undefined>(undefined);
+
     return <div className="article">
         <div className="article-block">
             <h3 className="article-title">
@@ -220,8 +252,9 @@ export const ArticleView: React.FC<ArticleProps> = (props: ArticleProps) => {
                     tags={titleTags}
                     showUnknown={showUnknown}
                     currentPopupKey={currentPopupKey}
-                    setCurrentPopup={setCurrentPopupKeyWrapper}
+                    setCurrentPopup={setCurrentPopupKey}
                     popupKeyRef={popupKeyRef}
+                    highlightedEntityId={highlightedEntityId}
                 />
             </h3>
             <h5 className="article-pmid">
@@ -247,6 +280,7 @@ export const ArticleView: React.FC<ArticleProps> = (props: ArticleProps) => {
                     currentPopupKey={currentPopupKey}
                     setCurrentPopup={setCurrentPopupKeyWrapper}
                     popupKeyRef={popupKeyRef}
+                    highlightedEntityId={highlightedEntityId}
                 />
             </div>
         </div>
@@ -256,7 +290,12 @@ export const ArticleView: React.FC<ArticleProps> = (props: ArticleProps) => {
                     {showUnknown ? "Hide unknown entities" : "Show unknown entities"}
                 </button>
             </div>
-            <LegendView items={props.article.entities} showUnknown={showUnknown}/>
+            <LegendView
+                items={props.article.entities}
+                showUnknown={showUnknown}
+                highlightedEntityId={highlightedEntityId}
+                setHighlightedEntityId={setHighlightedEntityId}
+            />
         </div>
     </div>
 };
