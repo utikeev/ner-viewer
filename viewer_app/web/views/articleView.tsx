@@ -1,6 +1,6 @@
 import {Article, KnownEntityGroup, Tag, TagType, TextEntities, UnknownEntity} from "../models/Article";
 import * as React from "react";
-import {useState} from "react";
+import {Ref, useEffect, useState} from "react";
 import "../styles/article.scss";
 import "../styles/entities.scss";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
@@ -11,9 +11,13 @@ export interface ArticleProps {
 }
 
 interface TaggedViewProps {
+    name: string
     text: string
     tags: Tag[]
     showUnknown: boolean
+    currentPopupKey?: string
+    setCurrentPopup: (popupKey: string | undefined) => void
+    popupKeyRef: Ref<HTMLDivElement>
 }
 
 function replaceMissingSymbols(text: string): string {
@@ -22,19 +26,60 @@ function replaceMissingSymbols(text: string): string {
         .replace('&lt;', '<');
 }
 
+const getPrefix = (type: TagType) => {
+    return type == TagType.GENE ? 'GENE:' : 'MeSH:';
+};
+
+const getLink = (id: string, type: TagType) => {
+    return type == TagType.GENE ? `https://www.ncbi.nlm.nih.gov/gene/${id}` :
+        `https://meshb.nlm.nih.gov/record/ui?ui=${id}`;
+};
+
+interface TagPopupProps {
+    ref?: Ref<HTMLDivElement>
+    tag: Tag
+}
+
+const TagWithPopup: React.FC<TagPopupProps> = React.forwardRef((props: TagPopupProps, ref?: Ref<HTMLDivElement>) => {
+    return <div ref={ref} className={"article-tag-popup"}>
+        {props.tag.types.map((type, i) => {
+            const id = props.tag.ids[type];
+            return <div className="article-tag-popup-group" key={i}>
+                <span className={`entity-${type.toLowerCase()}-text`}>{type}</span>
+                {
+                    id ? <a href={getLink(id, type)}
+                            className="entity-link"
+                            rel="noopener noreferrer"
+                            target="_blank">
+                        {`${getPrefix(type)}${id}`}
+                    </a> : <span>Unknown</span>
+                }
+            </div>
+        })}
+    </div>
+});
+
 const TaggedView: React.FC<TaggedViewProps> = (props: TaggedViewProps) => {
     const elements: Array<React.ReactElement> = [];
     let processed = 0;
     for (const tag of props.tags) {
         const idMap = tag.ids;
         if (Object.values(idMap).filter(item => item != null).length == 0 && !props.showUnknown) continue;
+        const selected = props.currentPopupKey == `${props.name}-${tag.start}`;
         const types = tag.types.filter(type => props.showUnknown || idMap[type] != null).map(type => type.toLowerCase());
         const unformatted = replaceMissingSymbols(props.text.substring(processed, tag.start));
         const formatted = replaceMissingSymbols(tag.text);
         if (unformatted != '') {
             elements.push(<React.Fragment key={processed}>{unformatted}</React.Fragment>);
         }
-        elements.push(<span key={tag.start} className={`entity-${types.join("-")}`}>{formatted}</span>);
+        elements.push(
+            <span key={`${props.name}-${tag.start}`}
+                  className={`entity-${types.join("-")} article-entity`}
+                  onClick={() => props.setCurrentPopup(`${props.name}-${tag.start}`)}>
+                {formatted}
+                {selected ? <TagWithPopup key={`${props.name}-popup`} ref={props.popupKeyRef} tag={tag}/> : <></>}
+            </span>
+        );
         processed = tag.end;
     }
     const remainder = replaceMissingSymbols(props.text.substring(processed));
@@ -92,6 +137,7 @@ const UnknownLegendItem: React.FC<UnknownLegendItemViewProps> = (props: UnknownL
 interface LegendGroupProps {
     name: string,
     icon: any,
+    type: TagType,
     knownItems: KnownEntityGroup[]
     unknownItems: UnknownEntity[]
 }
@@ -105,7 +151,7 @@ const LegendGroup: React.FC<LegendGroupProps> = (props: LegendGroupProps) => {
 
     return <div>
         <h5
-            className={`article-legend-group-label article-legend-group-label-${props.name.toLowerCase()} ${expanded ? 'article-legend-group-label-open' : ''}`}
+            className={`article-legend-group-label entity-${props.type.toLowerCase()}-text ${expanded ? 'article-legend-group-label-open' : ''}`}
             onClick={() => setExpanded(!expanded)}>
             <FontAwesomeIcon icon={props.icon}/> {props.name} <FontAwesomeIcon icon={faCaretRight}/>
         </h5>
@@ -113,7 +159,8 @@ const LegendGroup: React.FC<LegendGroupProps> = (props: LegendGroupProps) => {
             expanded ? <ul>
                 {props.knownItems.sort(compare).map((item, i) => <li key={i}><KnownLegendItem item={item}/></li>)}
                 {props.unknownItems.length > 0 ? <h6>Unknown items</h6> : <></>}
-                {props.unknownItems.sort(compareUnknown).map((item, i) => <li key={i}><UnknownLegendItem item={item}/></li>)}
+                {props.unknownItems.sort(compareUnknown).map((item, i) => <li key={i}><UnknownLegendItem item={item}/>
+                </li>)}
             </ul> : <></>
         }
     </div>
@@ -122,15 +169,15 @@ const LegendGroup: React.FC<LegendGroupProps> = (props: LegendGroupProps) => {
 const LegendView: React.FC<LegendViewProps> = ({items: {known, unknown}, showUnknown}: LegendViewProps) => {
 
     return <div className="article-legend-list">
-        <LegendGroup name="Genes" icon={faDna}
+        <LegendGroup name="Genes" icon={faDna} type={TagType.GENE}
                      knownItems={known.filter((item) => item.type == TagType.GENE)}
                      unknownItems={showUnknown ? unknown.filter((item) => item.type == TagType.GENE) : []}
         />
-        <LegendGroup name="Diseases" icon={faVirus}
+        <LegendGroup name="Diseases" icon={faVirus} type={TagType.DISEASE}
                      knownItems={known.filter((item) => item.type == TagType.DISEASE)}
                      unknownItems={showUnknown ? unknown.filter((item) => item.type == TagType.DISEASE) : []}
         />
-        <LegendGroup name="Chemicals" icon={faVials}
+        <LegendGroup name="Chemicals" icon={faVials} type={TagType.CHEMICAL}
                      knownItems={known.filter((item) => item.type == TagType.CHEMICAL)}
                      unknownItems={showUnknown ? unknown.filter((item) => item.type == TagType.CHEMICAL) : []}
         />
@@ -147,10 +194,35 @@ export const ArticleView: React.FC<ArticleProps> = (props: ArticleProps) => {
         });
     const [showUnknown, setShownUnknown] = useState(true);
 
+    const [currentPopupKey, setCurrentPopupKey] = useState<string | undefined>(undefined);
+    const popupKeyRef = React.createRef<HTMLDivElement>();
+    const setCurrentPopupKeyWrapper: (popupKey: string | undefined) => void = (popupKey) => setCurrentPopupKey(popupKey);
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const currentRef = popupKeyRef.current;
+            if (currentRef && !currentRef.contains((event.target as Element))) {
+                setCurrentPopupKey(undefined);
+            }
+        };
+
+        document.addEventListener("mouseup", handleClickOutside);
+        return () => {
+            document.removeEventListener("mouseup", handleClickOutside);
+        };
+    }, [popupKeyRef]);
+
     return <div className="article">
         <div className="article-block">
             <h3 className="article-title">
-                <TaggedView text={props.article.title} tags={titleTags} showUnknown={showUnknown}/>
+                <TaggedView
+                    name="title"
+                    text={props.article.title}
+                    tags={titleTags}
+                    showUnknown={showUnknown}
+                    currentPopupKey={currentPopupKey}
+                    setCurrentPopup={setCurrentPopupKeyWrapper}
+                    popupKeyRef={popupKeyRef}
+                />
             </h3>
             <h5 className="article-pmid">
                 <a href={`https://pubmed.ncbi.nlm.nih.gov/${props.article.pmid}`}
@@ -167,7 +239,15 @@ export const ArticleView: React.FC<ArticleProps> = (props: ArticleProps) => {
                 </a>
             </h5>
             <div className="article-abstract">
-                <TaggedView text={props.article.abstract} tags={abstractTags} showUnknown={showUnknown}/>
+                <TaggedView
+                    name="abstract"
+                    text={props.article.abstract}
+                    tags={abstractTags}
+                    showUnknown={showUnknown}
+                    currentPopupKey={currentPopupKey}
+                    setCurrentPopup={setCurrentPopupKeyWrapper}
+                    popupKeyRef={popupKeyRef}
+                />
             </div>
         </div>
         <div className="article-legend">

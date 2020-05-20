@@ -2,8 +2,8 @@ $common-bg-sat: 60%;
 $common-bg-lig: 60%;
 $common-bg-alpha: 0.5%;
 
-$common-fg-sat: 60%;
-$common-fg-lig: 60%;
+$common-fg-sat: 50%;
+$common-fg-lig: 50%;
 
 $gene-hue: 285;
 $chemical-hue: 109;
@@ -28,27 +28,28 @@ $disease-text: entity_text_color($disease-hue);
     @return linear-gradient(90deg, $from 0 30%, $to 70% 100%);
 }
 
-span[class*="entity-"] {
-    -webkit-text-fill-color: rgba(0, 0, 0, 0.7);
-
-    // TODO: had to solve first the way to show partial conflicts, otherwise it leads to big gaps between conflicting parts
-    //border-radius: 0.5rem;
-    //padding-inline-start: 0.3rem;
-    //padding-inline-end: 0.3rem;
-    //padding-top: 0.1rem;
-    //padding-bottom: 0.1rem;
-}
-
 .entity-gene {
     background-color: $gene-color;
+}
+
+.entity-gene-text {
+    color: $gene-text;
 }
 
 .entity-chemical {
     background-color: $chemical-color;
 }
 
+.entity-chemical-text {
+    color: $chemical-text;
+}
+
 .entity-disease {
     background-color: $disease-color;
+}
+
+.entity-disease-text {
+    color: $disease-text;
 }
 
 .entity-gene-chemical {

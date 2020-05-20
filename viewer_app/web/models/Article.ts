@@ -9,7 +9,7 @@ export interface Tag {
     text: string,
     start: number,
     end: number,
-    ids: {[tag: string]: string}
+    ids: {[tag: string]: string|null}
 }
 
 export interface KnownEntityGroup {

@@ -31,8 +31,16 @@ class Article(Base):
     def entities(self) -> Set[NormalizedEntity]:
         tags = self.tags.split('\n')
         tags = [tag.split(' ') for tag in tags]
-        tags = [NormalizedEntity(tag[0], ' '.join(tag[1:-3]), _parse_id(tag[-1])) for tag in tags]
-        return set(tags)
+        new_tags = []
+        for tag in tags:
+            normalized_offset = 1 if tag[-1].isdigit() else 0
+            e_id = None
+            if normalized_offset == 0:
+                e_id = _parse_id(tag[-1])
+            e_type = tag[0]
+            text = ' '.join(tag[1: -3 + normalized_offset])
+            new_tags.append(NormalizedEntity(e_type, text, e_id))
+        return set(new_tags)
 
     @property
     def compound_tags(self) -> List[TaggedEntity]:
@@ -40,8 +48,15 @@ class Article(Base):
         tags = [tag.split(' ') for tag in tags]
         new_tags = []
         for tag in tags:
-            ids = {tag[0]: _parse_id(tag[-1])}
-            new_tags.append(TaggedEntity([tag[0]], int(tag[-3]), int(tag[-2]), ' '.join(tag[1:-3]), ids))
+            normalized_offset = 1 if tag[-1].isdigit() else 0
+            ids = {tag[0]: None}
+            if normalized_offset == 0:
+                ids[tag[0]] = _parse_id(tag[-1])
+            e_type = tag[0]
+            start = int(tag[-3 + normalized_offset])
+            end = int(tag[-2 + normalized_offset])
+            text = ' '.join(tag[1: -3 + normalized_offset])
+            new_tags.append(TaggedEntity([e_type], start, end, text, ids))
         return split_to_compound_tags(new_tags)
 
 

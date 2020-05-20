@@ -36,6 +36,7 @@ class ArticleHandler(tornado.web.RequestHandler):
     def article_to_json(article: Article) -> Any:
         if article is None:
             return None
+        LOG.info(f'Getting PMID ${article.id}')
         content_parts = article.content.split('|')
         tags = article.compound_tags
         entities = article.entities
@@ -73,7 +74,6 @@ class ArticleHandler(tornado.web.RequestHandler):
     @staticmethod
     def get_by_pmid(db: ArticleDatabase, pmid: int) -> Any:
         return ArticleHandler.article_to_json(db[pmid])
-
 
     @staticmethod
     def get_random(db: ArticleDatabase) -> Any:
