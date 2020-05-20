@@ -1,4 +1,4 @@
-from typing import NamedTuple, List, Optional, Set
+from typing import NamedTuple, List, Optional, Set, Dict
 
 
 class NormalizedEntity(NamedTuple):
@@ -12,7 +12,7 @@ class TaggedEntity(NamedTuple):
     start: int
     end: int
     text: str
-    ids: Set[str]
+    ids: Dict[str, Optional[str]]
 
     def __lt__(self, other):
         if self.start == other.start:

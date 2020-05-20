@@ -1,7 +1,10 @@
+@import "entities";
+
 .article {
   display: grid;
   grid-template-columns: 70% auto;
-  margin: 1rem;
+  grid-column-gap: 1rem;
+  margin: 2rem;
 }
 
 .article-block {
@@ -19,11 +22,34 @@
 }
 
 .article-legend {
-  display: grid;
-}
+  & ul {
+    list-style: none;
+  }
 
-.article-legend ul {
-  list-style: none;
+  &-show-unknown {
+    margin-bottom: 1rem;
+  }
+
+  &-group-label {
+    cursor: pointer;
+    & .fa-caret-right {
+      transition: transform 0.2s ease-out;
+    }
+
+    &-open .fa-caret-right {
+      transform: rotate(90deg);
+    }
+
+    &-genes {
+      color: $gene-text;
+    }
+    &-diseases {
+      color: $disease-text;
+    }
+    &-chemicals {
+      color: $chemical-text;
+    }
+  }
 }
 
 .entity-link {

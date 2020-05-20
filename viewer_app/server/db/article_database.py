@@ -40,10 +40,7 @@ class Article(Base):
         tags = [tag.split(' ') for tag in tags]
         new_tags = []
         for tag in tags:
-            ids = set()
-            maybe_id = _parse_id(tag[-1])
-            if maybe_id:
-                ids.add(maybe_id)
+            ids = {tag[0]: _parse_id(tag[-1])}
             new_tags.append(TaggedEntity([tag[0]], int(tag[-3]), int(tag[-2]), ' '.join(tag[1:-3]), ids))
         return split_to_compound_tags(new_tags)
 

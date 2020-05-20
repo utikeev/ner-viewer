@@ -30,7 +30,7 @@ def split_to_compound_tags(tags: List[TaggedEntity]) -> List[TaggedEntity]:
                     result.append(TaggedEntity(l_tags, start, o_start, text[:o_start - start], l_ids))
                     processed = o_start
                 if o_end > processed:
-                    result.append(TaggedEntity(l_tags + o_l_tags, o_start, o_end, text[o_start - start:o_end - start], l_ids.union(o_ids)))
+                    result.append(TaggedEntity(l_tags + o_l_tags, o_start, o_end, text[o_start - start:o_end - start], {**l_ids, **o_ids}))
                     processed = o_end
                 if end != o_end:
                     result.append(TaggedEntity(l_tags, o_end, end, text[o_end - start:], l_ids))
@@ -41,7 +41,7 @@ def split_to_compound_tags(tags: List[TaggedEntity]) -> List[TaggedEntity]:
                     result.append(TaggedEntity(l_tags, start, o_start, text[:o_start - start], l_ids))
                     processed = o_start
                 if end > processed:
-                    result.append(TaggedEntity(l_tags + o_l_tags, o_start, end, text[o_start - start:end - start], l_ids.union(o_ids)))
+                    result.append(TaggedEntity(l_tags + o_l_tags, o_start, end, text[o_start - start:end - start], {**l_ids, **o_ids}))
                     processed = end
                 if o_end > processed:
                     tags[j] = TaggedEntity(o_l_tags, processed, o_end, o_text[processed - o_start:], o_ids)

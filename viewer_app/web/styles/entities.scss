@@ -2,6 +2,9 @@ $common-bg-sat: 60%;
 $common-bg-lig: 60%;
 $common-bg-alpha: 0.5%;
 
+$common-fg-sat: 60%;
+$common-fg-lig: 60%;
+
 $gene-hue: 285;
 $chemical-hue: 109;
 $disease-hue: 50;
@@ -10,9 +13,16 @@ $disease-hue: 50;
     @return hsla($base, $common-bg-sat, $common-bg-lig, $common-bg-alpha);
 }
 
+@function entity_text_color($base) {
+    @return hsl($base, $common-fg-sat, $common-fg-lig);
+}
+
 $gene-color: entity_bg_color($gene-hue);
+$gene-text: entity_text_color($gene-hue);
 $chemical-color: entity_bg_color($chemical-hue);
+$chemical-text: entity_text_color($chemical-hue);
 $disease-color: entity_bg_color($disease-hue);
+$disease-text: entity_text_color($disease-hue);
 
 @function mixed_color($from, $to) {
     @return linear-gradient(90deg, $from 0 30%, $to 70% 100%);

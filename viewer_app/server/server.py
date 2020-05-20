@@ -49,7 +49,7 @@ class ArticleHandler(tornado.web.RequestHandler):
                     'text': tag.text,
                     'start': tag.start,
                     'end': tag.end,
-                    'id': list(tag.ids),
+                    'ids': tag.ids,
                 } for tag in tags
             ],
             'entities': ArticleHandler._group_entities(entities)
