@@ -1,9 +1,10 @@
-from typing import NamedTuple, List
+from typing import NamedTuple, List, Optional, Set
 
 
 class NormalizedEntity(NamedTuple):
     tag: str
     text: str
+    id: Optional[str]
 
 
 class TaggedEntity(NamedTuple):
@@ -11,6 +12,7 @@ class TaggedEntity(NamedTuple):
     start: int
     end: int
     text: str
+    ids: Set[str]
 
     def __lt__(self, other):
         if self.start == other.start:

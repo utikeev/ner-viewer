@@ -2,13 +2,14 @@ import argparse
 import logging
 import os
 from pathlib import Path
-from typing import Optional, Awaitable, Any
+from typing import Optional, Awaitable, Any, Dict, Set
 
 import tornado.ioloop
 import tornado.web
 from tornado import httputil
 
 from viewer_app.server.db.article_database import ArticleDatabase, Article
+from viewer_app.server.models.tags import NormalizedEntity
 
 LOG = logging.getLogger('ner.viewer.main')
 
@@ -47,16 +48,27 @@ class ArticleHandler(tornado.web.RequestHandler):
                     'types': tag.tags,
                     'text': tag.text,
                     'start': tag.start,
-                    'end': tag.end
+                    'end': tag.end,
+                    'id': list(tag.ids),
                 } for tag in tags
             ],
-            'entities': [
-                {
-                    'type': entity.tag,
-                    'text': entity.text
-                } for entity in entities
-            ]
+            'entities': ArticleHandler._group_entities(entities)
         }
+
+    @staticmethod
+    def _group_entities(entities: Set[NormalizedEntity]) -> Dict[str, Any]:
+        res: Dict[str, Any] = {'unknown': [], 'known': {}}
+        for entity in entities:
+            if entity.id:
+                if entity.id not in res['known']:
+                    res['known'][entity.id] = {'type': entity.tag, 'aliases': []}
+                res['known'][entity.id]['aliases'].append(entity.text)
+            else:
+                res['unknown'].append({'type': entity.tag, 'alias': entity.text})
+        res['known'] = [{'id': k, **v} for k, v in res['known'].items()]
+        for item in res['known']:
+            item['aliases'] = list({value.lower(): value for value in item['aliases']}.values())
+        return res
 
     @staticmethod
     def get_by_pmid(db: ArticleDatabase, pmid: int) -> Any:

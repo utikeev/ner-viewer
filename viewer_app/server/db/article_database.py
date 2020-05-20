@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Set
+from typing import List, Set, Iterable, Optional
 
 from sqlalchemy import Column, String, Integer, create_engine, func
 from sqlalchemy.ext.declarative import declarative_base
@@ -9,6 +9,12 @@ from viewer_app.server.models.compound_tags import split_to_compound_tags
 from viewer_app.server.models.tags import TaggedEntity, NormalizedEntity
 
 Base = declarative_base()
+
+
+def _parse_id(string: str) -> Optional[str]:
+    if string == 'None' or string == 'CUI-less':
+        return None
+    return string.split('-')[0]
 
 
 class Article(Base):
@@ -25,15 +31,21 @@ class Article(Base):
     def entities(self) -> Set[NormalizedEntity]:
         tags = self.tags.split('\n')
         tags = [tag.split(' ') for tag in tags]
-        tags = [NormalizedEntity(tag[0], ' '.join(tag[1:-2])) for tag in tags]
+        tags = [NormalizedEntity(tag[0], ' '.join(tag[1:-3]), _parse_id(tag[-1])) for tag in tags]
         return set(tags)
 
     @property
     def compound_tags(self) -> List[TaggedEntity]:
         tags = self.tags.split('\n')
         tags = [tag.split(' ') for tag in tags]
-        tags = [TaggedEntity([tag[0]], int(tag[-2]), int(tag[-1]), ' '.join(tag[1:-2])) for tag in tags]
-        return split_to_compound_tags(tags)
+        new_tags = []
+        for tag in tags:
+            ids = set()
+            maybe_id = _parse_id(tag[-1])
+            if maybe_id:
+                ids.add(maybe_id)
+            new_tags.append(TaggedEntity([tag[0]], int(tag[-3]), int(tag[-2]), ' '.join(tag[1:-3]), ids))
+        return split_to_compound_tags(new_tags)
 
 
 class ArticleDatabase:

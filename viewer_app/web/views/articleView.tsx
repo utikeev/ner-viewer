@@ -1,4 +1,4 @@
-import {Article, Entity, Tag} from "../models/Article";
+import {Article, KnownEntityGroup, Tag, TagType, TextEntities, UnknownEntity} from "../models/Article";
 import * as React from "react";
 import "../styles/article.scss";
 import "../styles/entities.scss";
@@ -39,29 +39,71 @@ const TaggedView: React.FC<TaggedViewProps> = (props: TaggedViewProps) => {
 };
 
 interface LegendViewProps {
-    items: Entity[]
+    items: TextEntities
 }
 
-interface LegendItemViewProps {
-    item: Entity
+interface KnownLegendItemViewProps {
+    item: KnownEntityGroup
 }
 
-const compare = (a: Entity, b: Entity) => {
+interface UnknownLegendItemViewProps {
+    item: UnknownEntity
+}
+
+const compare = (a: KnownEntityGroup, b: KnownEntityGroup) => {
     const typesCompare = a.type.localeCompare(b.type);
     if (typesCompare == 0) {
-        return a.text.localeCompare(b.text)
+        return a.id.localeCompare(b.id)
     }
     return typesCompare;
 };
 
-const LegendItem: React.FC<LegendItemViewProps> = (props: LegendItemViewProps) => {
-    return <span className={`entity-${props.item.type.toLowerCase()}`}>{replaceMissingSymbols(props.item.text)}</span>
+const compareUnknown = (a: UnknownEntity, b: UnknownEntity) => {
+    const typesCompare = a.type.localeCompare(b.type);
+    if (typesCompare == 0) {
+        return a.alias.localeCompare(b.alias)
+    }
+    return typesCompare;
 };
 
-const LegendView: React.FC<LegendViewProps> = (props: LegendViewProps) => {
-    return <ul>
-        {props.items.sort(compare).map((item, i) => <li key={i}><LegendItem item={item}/></li>)}
-    </ul>
+const KnownLegendItem: React.FC<KnownLegendItemViewProps> = (props: KnownLegendItemViewProps) => {
+    const prefix = props.item.type == TagType.GENE ? 'GENE:' : 'MeSH:';
+    const link = props.item.type == TagType.GENE ? `https://www.ncbi.nlm.nih.gov/gene/${props.item.id}` :
+        `https://meshb.nlm.nih.gov/record/ui?ui=${props.item.id}`;
+
+    return <div>
+        <span className={`entity-${props.item.type.toLowerCase()}`}>
+            <a href={link}
+               className="entity-link"
+               rel="noopener noreferrer"
+               target="_blank">
+                {prefix + props.item.id}
+            </a>
+        </span>
+        <ul>
+            {props.item.aliases.map((item, i) => <li key={i}>{item}</li>)}
+        </ul>
+    </div>
+};
+
+const UnknownLegendItem: React.FC<UnknownLegendItemViewProps> = (props: UnknownLegendItemViewProps) => {
+    return <span className={`entity-${props.item.type.toLowerCase()}`}>{replaceMissingSymbols(props.item.alias)}</span>
+};
+
+const LegendView: React.FC<LegendViewProps> = ({items: {known, unknown}}: LegendViewProps) => {
+    const unknownItemsList = <>
+        <span>Unknown items</span>
+        <ul>
+            {unknown.sort(compareUnknown).map((item, i) => <li key={i}><UnknownLegendItem item={item}/></li>)}
+        </ul>
+    </>;
+
+    return <div>
+        <ul>
+            {known.sort(compare).map((item, i) => <li key={i}><KnownLegendItem item={item}/></li>)}
+        </ul>
+        {unknown.length > 0 ? unknownItemsList : <></>}
+    </div>
 };
 
 export const ArticleView: React.FC<ArticleProps> = (props: ArticleProps) => {

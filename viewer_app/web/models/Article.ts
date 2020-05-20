@@ -8,12 +8,24 @@ export interface Tag {
     types: TagType[],
     text: string,
     start: number,
-    end: number
+    end: number,
+    id?: string
 }
 
-export interface Entity {
+export interface KnownEntityGroup {
+    id: string,
     type: TagType,
-    text: string
+    aliases: string[]
+}
+
+export interface UnknownEntity {
+    type: TagType,
+    alias: string
+}
+
+export interface TextEntities {
+    known: KnownEntityGroup[],
+    unknown: UnknownEntity[]
 }
 
 export interface Article {
@@ -21,5 +33,5 @@ export interface Article {
     title: string,
     abstract: string
     tags: Tag[],
-    entities: Entity[]
+    entities: TextEntities
 }
