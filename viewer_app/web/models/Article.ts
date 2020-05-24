@@ -1,7 +1,8 @@
 export enum TagType {
     GENE = 'GENE',
     DISEASE = 'DISEASE',
-    CHEMICAL = 'CHEMICAL'
+    CHEMICAL = 'CHEMICAL',
+    TAXON = 'TAXON'
 }
 
 export interface Tag {

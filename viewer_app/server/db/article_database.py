@@ -59,6 +59,9 @@ class Article(Base):
             new_tags.append(TaggedEntity([e_type], start, end, text, ids))
         return split_to_compound_tags(new_tags)
 
+    def __str__(self):
+        return f'{self.content}\n{self.tags}'
+
 
 class ArticleDatabase:
     def __init__(self, path: Path):

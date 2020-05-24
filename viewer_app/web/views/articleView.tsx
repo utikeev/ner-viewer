@@ -1,10 +1,10 @@
 import {Article, KnownEntityGroup, Tag, TagType, TextEntities, UnknownEntity} from "../models/Article";
 import * as React from "react";
-import {Ref, SetStateAction, useEffect, useState} from "react";
+import {Ref, useEffect, useState} from "react";
 import "../styles/article.scss";
 import "../styles/entities.scss";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faCaretRight, faDna, faSearch, faTimesCircle, faVials, faVirus} from "@fortawesome/free-solid-svg-icons";
+import {faCaretRight, faDna, faPaw, faSearch, faTimesCircle, faVials, faVirus} from "@fortawesome/free-solid-svg-icons";
 
 export interface ArticleProps {
     article: Article
@@ -211,17 +211,42 @@ const LegendView: React.FC<LegendViewProps> = (props: LegendViewProps) => {
                      highlightedEntityId={props.highlightedEntityId}
                      setHighlightedEntityId={props.setHighlightedEntityId}
         />
+        <LegendGroup name="Species" icon={faPaw} type={TagType.TAXON}
+                     knownItems={known.filter((item) => item.type == TagType.TAXON)}
+                     unknownItems={props.showUnknown ? unknown.filter((item) => item.type == TagType.TAXON) : []}
+                     highlightedEntityId={props.highlightedEntityId}
+                     setHighlightedEntityId={props.setHighlightedEntityId}
+        />
     </div>
 };
 
 export const ArticleView: React.FC<ArticleProps> = (props: ArticleProps) => {
     const titleLength = props.article.title.length;
     const titleTags = props.article.tags.filter(tag => tag.end <= titleLength);
-    const abstractTags: Tag[] = props.article.tags
-        .filter(tag => tag.start > titleLength)
-        .map(tag => {
-            return {...tag, start: tag.start - titleLength - 1, end: tag.end - titleLength - 1};
-        });
+    const textGroups = props.article.abstract.split(/(BACKGROUND|OBJECTIVE|METHODS|RESULTS|CONCLUSIONS)/);
+    const paragraphs: string[] = [];
+    const groupTags: Tag[][] = [];
+    let offset = titleLength;
+    for (let i = 0; i < textGroups.length; i += 2) {
+        let paragraph: string;
+        if (i == 0) {
+            if (textGroups.length == 1) {
+                paragraph = textGroups[0];
+            } else {
+                i++;
+            }
+        }
+        paragraph = textGroups[i] + textGroups[i + 1];
+        paragraphs.push(paragraph);
+        const paragraphTags: Tag[] = props.article.tags
+            .filter(tag => tag.start > offset && tag.start < offset + paragraph.length)
+            .map(tag => {
+                return {...tag, start: tag.start - offset - 1, end: tag.end - offset - 1}
+            });
+        groupTags.push(paragraphTags);
+        offset += paragraph.length;
+    }
+
     const [showUnknown, setShownUnknown] = useState(true);
 
     const [currentPopupKey, setCurrentPopupKey] = useState<string | undefined>(undefined);
@@ -272,16 +297,20 @@ export const ArticleView: React.FC<ArticleProps> = (props: ArticleProps) => {
                 </a>
             </h5>
             <div className="article-abstract">
-                <TaggedView
-                    name="abstract"
-                    text={props.article.abstract}
-                    tags={abstractTags}
-                    showUnknown={showUnknown}
-                    currentPopupKey={currentPopupKey}
-                    setCurrentPopup={setCurrentPopupKeyWrapper}
-                    popupKeyRef={popupKeyRef}
-                    highlightedEntityId={highlightedEntityId}
-                />
+                {paragraphs.map((paragraph, i) =>
+                    <div key={`abstract_${i}`}>
+                        <TaggedView
+                            name={`abstract_${i}`}
+                            text={paragraph}
+                            tags={groupTags[i]}
+                            showUnknown={showUnknown}
+                            currentPopupKey={currentPopupKey}
+                            setCurrentPopup={setCurrentPopupKeyWrapper}
+                            popupKeyRef={popupKeyRef}
+                            highlightedEntityId={highlightedEntityId}
+                        />
+                    </div>
+                )}
             </div>
         </div>
         <div className="article-legend">

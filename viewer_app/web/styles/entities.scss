@@ -8,6 +8,7 @@ $common-fg-lig: 50%;
 $gene-hue: 285;
 $chemical-hue: 109;
 $disease-hue: 50;
+$taxon-hue: 225;
 
 @function entity_bg_color($base) {
     @return hsla($base, $common-bg-sat, $common-bg-lig, $common-bg-alpha);
@@ -23,6 +24,8 @@ $chemical-color: entity_bg_color($chemical-hue);
 $chemical-text: entity_text_color($chemical-hue);
 $disease-color: entity_bg_color($disease-hue);
 $disease-text: entity_text_color($disease-hue);
+$taxon-color: entity_bg_color($taxon-hue);
+$taxon-text: entity_text_color($taxon-hue);
 
 @function mixed_color($from, $to) {
     @return linear-gradient(90deg, $from 0 30%, $to 70% 100%);
@@ -52,6 +55,14 @@ $disease-text: entity_text_color($disease-hue);
     color: $disease-text;
 }
 
+.entity-taxon {
+    background-color: $taxon-color;
+}
+
+.entity-taxon-text {
+    color: $taxon-text;
+}
+
 .entity-gene-chemical {
     background: mixed_color($gene-color, $chemical-color);
 }
@@ -74,4 +85,28 @@ $disease-text: entity_text_color($disease-hue);
 
 .entity-disease-chemical {
     background: mixed_color($disease-color, $chemical-color);
+}
+
+.entity-gene-taxon {
+    background: mixed_color($gene-color, $taxon-color);
+}
+
+.entity-taxon-gene {
+    background: mixed_color($taxon-color, $gene-color);
+}
+
+.entity-chemical-taxon {
+    background: mixed_color($chemical-color, $taxon-color);
+}
+
+.entity-taxon-chemical {
+    background: mixed_color($taxon-color, $chemical-color);
+}
+
+.entity-disease-taxon {
+    background: mixed_color($disease-color, $taxon-color);
+}
+
+.entity-taxon-disease {
+    background: mixed_color($taxon-color, $disease-color);
 }
