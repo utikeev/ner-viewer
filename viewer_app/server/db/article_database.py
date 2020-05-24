@@ -33,7 +33,7 @@ class Article(Base):
         tags = [tag.split(' ') for tag in tags]
         new_tags = []
         for tag in tags:
-            normalized_offset = 1 if tag[-1].isdigit() else 0
+            normalized_offset = 1 if tag[-1].isdigit() and tag[0] != 'TAXON' else 0
             e_id = None
             if normalized_offset == 0:
                 e_id = _parse_id(tag[-1])
@@ -48,7 +48,7 @@ class Article(Base):
         tags = [tag.split(' ') for tag in tags]
         new_tags = []
         for tag in tags:
-            normalized_offset = 1 if tag[-1].isdigit() else 0
+            normalized_offset = 1 if tag[-1].isdigit() and tag[0] != 'TAXON' else 0
             ids = {tag[0]: None}
             if normalized_offset == 0:
                 ids[tag[0]] = _parse_id(tag[-1])

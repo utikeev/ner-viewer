@@ -28,12 +28,21 @@ function replaceMissingSymbols(text: string): string {
 }
 
 const getPrefix = (type: TagType) => {
-    return type == TagType.GENE ? 'GENE:' : 'MeSH:';
+    if (type == TagType.GENE) {
+        return 'GENE:';
+    } else if (type == TagType.TAXON) {
+        return 'NCBI:';
+    }
+    return 'MeSH:';
 };
 
 const getLink = (id: string, type: TagType) => {
-    return type == TagType.GENE ? `https://www.ncbi.nlm.nih.gov/gene/${id}` :
-        `https://meshb.nlm.nih.gov/record/ui?ui=${id}`;
+    if (type == TagType.GENE) {
+        return `https://www.ncbi.nlm.nih.gov/gene/${id}`;
+    } else if (type == TagType.TAXON) {
+        return `https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=${id}`;
+    }
+    return `https://meshb.nlm.nih.gov/record/ui?ui=${id}`;
 };
 
 interface TagPopupProps {
@@ -117,9 +126,8 @@ const compareUnknown = (a: UnknownEntity, b: UnknownEntity) => {
 };
 
 const KnownLegendItem: React.FC<KnownLegendItemViewProps> = (props: KnownLegendItemViewProps) => {
-    const prefix = props.item.type == TagType.GENE ? 'GENE:' : 'MeSH:';
-    const link = props.item.type == TagType.GENE ? `https://www.ncbi.nlm.nih.gov/gene/${props.item.id}` :
-        `https://meshb.nlm.nih.gov/record/ui?ui=${props.item.id}`;
+    const prefix = getPrefix(props.item.type);
+    const link = getLink(props.item.id, props.item.type);
     const highlighted = props.highlightedEntityId == props.item.id;
     const iconClass = highlighted ? "article-legend-item-icon-close" : "article-legend-item-icon-search";
     return <div>
@@ -223,20 +231,18 @@ const LegendView: React.FC<LegendViewProps> = (props: LegendViewProps) => {
 export const ArticleView: React.FC<ArticleProps> = (props: ArticleProps) => {
     const titleLength = props.article.title.length;
     const titleTags = props.article.tags.filter(tag => tag.end <= titleLength);
-    const textGroups = props.article.abstract.split(/(BACKGROUND|OBJECTIVE|METHODS|RESULTS|CONCLUSIONS)/);
+    const textGroups = props.article.abstract.split(/([A-Z][^a-z]*?:)/);
     const paragraphs: string[] = [];
     const groupTags: Tag[][] = [];
     let offset = titleLength;
     for (let i = 0; i < textGroups.length; i += 2) {
         let paragraph: string;
-        if (i == 0) {
-            if (textGroups.length == 1) {
-                paragraph = textGroups[0];
-            } else {
-                i++;
-            }
+        if (textGroups.length == 1) {
+            paragraph = textGroups[0];
+        } else {
+            if (i == 0) i++;
+            paragraph = textGroups[i] + textGroups[i + 1];
         }
-        paragraph = textGroups[i] + textGroups[i + 1];
         paragraphs.push(paragraph);
         const paragraphTags: Tag[] = props.article.tags
             .filter(tag => tag.start > offset && tag.start < offset + paragraph.length)
